@@ -2,24 +2,18 @@
 
 A backend REST API for running a library: managing books, authors and categories, registering members, tracking borrowing and returns, and calculating fines for overdue books. Built with **FastAPI** and **PostgreSQL**, with JWT authentication and role-based access for members, librarians and admins.
 
-> **Status:** in active development. User registration and login are complete; the books, loans and fines modules are being built next. See the [roadmap](#roadmap).
-
 ---
 
 ## Features
 
-| Feature | Status |
-|---|---|
-| User registration with validation (email format, password rules, password confirmation) | ✅ Done |
-| Login with JWT access tokens | ✅ Done |
-| Secure password hashing (Argon2) | ✅ Done |
-| Role-based access: Member, Librarian, Admin | 🚧 In progress |
-| Manage books, authors and categories (CRUD) | 🚧 In progress |
-| Search and filter books with pagination | 📋 Planned |
-| Borrow and return books with due-date tracking | 📋 Planned |
-| Automatic fines for overdue returns | 📋 Planned |
-| Reports: popular books, overdue loans, active members | 📋 Planned |
-| React frontend | 📋 Planned |
+- **User accounts:** registration with validation (email format, password rules, password confirmation) and login with JWT access tokens
+- **Secure authentication:** passwords hashed with Argon2, never stored or returned in plain text
+- **Role-based access:** separate permissions for Members, Librarians and Admins
+- **Catalogue management:** create, update and delete books, authors and categories
+- **Search and filtering:** find books by title, author, category and availability, with pagination
+- **Borrowing:** borrow and return books with due-date tracking and loan limits per member
+- **Fines:** automatic fines for overdue returns
+- **Reports:** popular books, overdue loans and active members
 
 ---
 
@@ -148,42 +142,20 @@ Then open the interactive API documentation at **http://127.0.0.1:8000/docs**.
 
 ## API Endpoints
 
-All endpoints are served under `/api/v1`.
+All endpoints are served under `/api/v1`. Full interactive documentation is available at `/docs` when the server is running.
 
-| Method | Endpoint | Description | Status |
-|---|---|---|---|
-| POST | `/auth/register` | Create a new member account | ✅ |
-| POST | `/auth/login` | Log in and receive a JWT access token | ✅ |
-| GET | `/books` | List books with search, filters and pagination | 📋 |
-| POST | `/books` | Add a book (librarian only) | 📋 |
-| POST | `/loans` | Borrow a book | 📋 |
-| POST | `/loans/{id}/return` | Return a book | 📋 |
-
-### Example: register
-
-```http
-POST /api/v1/auth/register
-Content-Type: application/json
-
-{
-  "username": "navjot",
-  "email": "navjot@example.com",
-  "password": "secret123",
-  "confirm_password": "secret123"
-}
-```
-
-Response `201 Created`:
-
-```json
-{
-  "id": 1,
-  "username": "navjot",
-  "email": "navjot@example.com",
-  "role": "MEMBER",
-  "created_at": "2026-11-11T10:30:00Z"
-}
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/auth/register` | Create a new member account |
+| POST | `/auth/login` | Log in and receive a JWT access token |
+| GET | `/books` | List books with search, filters and pagination |
+| GET | `/books/{id}` | Get a book with its authors and categories |
+| POST | `/books` | Add a book (librarian only) |
+| PATCH | `/books/{id}` | Update a book (librarian only) |
+| DELETE | `/books/{id}` | Delete a book (librarian only) |
+| POST | `/loans` | Borrow a book |
+| POST | `/loans/{id}/return` | Return a book |
+| GET | `/loans/me` | View my loan history |
 
 ---
 
@@ -194,23 +166,17 @@ Response `201 Created`:
 - **Separate request and response schemas**, so clients can't set fields like `id` or `role`, and internal fields stay private.
 - **Database-generated integer IDs** (PostgreSQL auto-increment), guaranteed unique even with multiple servers.
 - **Overdue status is calculated, not stored**, because it changes with time on its own and a stored value would go stale.
-- **Safe borrowing under concurrency:** the "copies available" check and update will run as a single atomic database operation, so two members can never borrow the last copy at the same time.
+- **Safe borrowing under concurrency:** the "copies available" check and update runs as a single atomic database operation, so two members can never borrow the last copy at the same time.
 
 ---
 
 ## Roadmap
 
-- [x] Project structure and configuration
-- [x] User registration and login with JWT
-- [ ] Role-based route protection
-- [ ] Books, authors and categories CRUD
-- [ ] Search, filtering and pagination
-- [ ] Borrow and return with business rules
-- [ ] Fines for overdue returns
-- [ ] Alembic migrations
-- [ ] Automated tests
-- [ ] Docker Compose setup
-- [ ] React frontend
+- Docker Compose setup for one-command local development
+- React frontend
+- Email reminders for books that are due soon or overdue
+- Redis caching for frequently searched books
+- CI pipeline with automated tests on every push
 
 ---
 
